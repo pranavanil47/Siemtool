@@ -1,0 +1,621 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wazuh Security Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wazuh-primary': '#1976D2',
+                        'wazuh-secondary': '#424242',
+                        'wazuh-accent': '#FF5722',
+                        'wazuh-success': '#4CAF50',
+                        'wazuh-warning': '#FF9800',
+                        'wazuh-error': '#F44336',
+                        'wazuh-dark': '#121212',
+                        'wazuh-surface': '#1E1E1E',
+                        'wazuh-surface-variant': '#2D2D2D'
+                    },
+                    fontFamily: {
+                        'roboto': ['Roboto', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-wazuh-dark text-white font-roboto">
+    <!-- @COMPONENT: TopNavigationBar [user info, notifications, settings] -->
+    <nav class="bg-wazuh-surface border-b border-gray-700 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-shield-alt text-wazuh-primary text-2xl"></i>
+                    <h1 class="text-xl font-medium">Wazuh Security Platform</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 text-sm text-gray-400">
+                    <span>Manager:</span>
+                    <span class="text-wazuh-success">wazuh-manager-01</span>
+                    <span class="w-2 h-2 bg-wazuh-success rounded-full animate-pulse"></span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <i class="fas fa-bell text-gray-400 hover:text-white cursor-pointer"></i>
+                    <span class="absolute -top-1 -right-1 bg-wazuh-error text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-wazuh-primary rounded-full flex items-center justify-center">
+                        <span class="text-sm font-medium" data-bind="user.initials">AD</span>
+                    </div>
+                    <span class="hidden md:block text-sm" data-bind="user.name">Admin User</span>
+                    <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: TopNavigationBar -->
+
+    <div class="flex h-screen">
+        <!-- @COMPONENT: SidebarNavigation [main navigation menu] -->
+        <aside class="w-64 bg-wazuh-surface border-r border-gray-700 overflow-y-auto">
+            <div class="p-4">
+                <div class="space-y-2">
+                    <!-- Dashboard Section -->
+                    <div class="border-b border-gray-700 pb-2 mb-4">
+                        <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Dashboard</h3>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-wazuh-primary text-white">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Overview</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytics</span>
+                        </button>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="border-b border-gray-700 pb-2 mb-4">
+                        <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Security</h3>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Alerts</span>
+                            <span class="ml-auto bg-wazuh-error text-xs px-2 py-1 rounded-full">24</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-bug"></i>
+                            <span>Vulnerabilities</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-file-shield"></i>
+                            <span>File Integrity</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-crosshairs"></i>
+                            <span>MITRE ATT&CK</span>
+                        </button>
+                    </div>
+
+                    <!-- Compliance Section -->
+                    <div class="border-b border-gray-700 pb-2 mb-4">
+                        <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Compliance</h3>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-credit-card"></i>
+                            <span>PCI DSS</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-user-shield"></i>
+                            <span>GDPR</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-hospital"></i>
+                            <span>HIPAA</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-bookmark"></i>
+                            <span>NIST 800-53</span>
+                        </button>
+                    </div>
+
+                    <!-- Management Section -->
+                    <div>
+                        <h3 class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Management</h3>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-server"></i>
+                            <span>Agents</span>
+                            <span class="ml-auto text-xs text-gray-500">847</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-cogs"></i>
+                            <span>Configuration</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-code"></i>
+                            <span>API Console</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-wazuh-surface-variant">
+                            <i class="fas fa-flask"></i>
+                            <span>Ruleset Test</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: SidebarNavigation -->
+
+        <!-- @COMPONENT: MainContent [dashboard content area] -->
+        <main class="flex-1 overflow-auto">
+            <!-- Header Section -->
+            <div class="bg-wazuh-surface border-b border-gray-700 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-medium">Security Overview</h2>
+                        <p class="text-gray-400 mt-1">Real-time security monitoring and threat detection</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <select class="bg-wazuh-surface-variant border border-gray-600 rounded px-3 py-2 text-sm">
+                            <option>Last 24 hours</option>
+                            <option>Last 7 days</option>
+                            <option>Last 30 days</option>
+                        </select>
+                        <button class="bg-wazuh-primary px-4 py-2 rounded text-sm hover:bg-blue-600">
+                            <i class="fas fa-download mr-2"></i>Export Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- KPI Cards -->
+                <!-- @COMPONENT: KPICards [key performance indicators] -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Active Agents</p>
+                                <p class="text-3xl font-semibold mt-2" data-bind="metrics.activeAgents">847</p>
+                                <p class="text-wazuh-success text-xs mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>+12 from yesterday
+                                </p>
+                            </div>
+                            <div class="bg-wazuh-primary bg-opacity-20 p-3 rounded-lg">
+                                <i class="fas fa-server text-wazuh-primary text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Critical Alerts</p>
+                                <p class="text-3xl font-semibold mt-2 text-wazuh-error" data-bind="metrics.criticalAlerts">24</p>
+                                <p class="text-wazuh-error text-xs mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>+6 in last hour
+                                </p>
+                            </div>
+                            <div class="bg-wazuh-error bg-opacity-20 p-3 rounded-lg">
+                                <i class="fas fa-exclamation-triangle text-wazuh-error text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Vulnerabilities</p>
+                                <p class="text-3xl font-semibold mt-2 text-wazuh-warning" data-bind="metrics.vulnerabilities">156</p>
+                                <p class="text-wazuh-success text-xs mt-1">
+                                    <i class="fas fa-arrow-down mr-1"></i>-8 since last scan
+                                </p>
+                            </div>
+                            <div class="bg-wazuh-warning bg-opacity-20 p-3 rounded-lg">
+                                <i class="fas fa-bug text-wazuh-warning text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-sm">Compliance Score</p>
+                                <p class="text-3xl font-semibold mt-2 text-wazuh-success" data-bind="metrics.complianceScore">94%</p>
+                                <p class="text-wazuh-success text-xs mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>+2% this month
+                                </p>
+                            </div>
+                            <div class="bg-wazuh-success bg-opacity-20 p-3 rounded-lg">
+                                <i class="fas fa-shield-alt text-wazuh-success text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: KPICards -->
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- @COMPONENT: AlertsChart [time series alert visualization] -->
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-medium">Security Alerts Timeline</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 bg-wazuh-error rounded-full"></span>
+                                <span class="text-sm text-gray-400">Critical</span>
+                                <span class="w-3 h-3 bg-wazuh-warning rounded-full ml-4"></span>
+                                <span class="text-sm text-gray-400">High</span>
+                            </div>
+                        </div>
+                        <canvas id="alertsChart" class="w-full h-64"></canvas>
+                    </div>
+                    <!-- @END_COMPONENT: AlertsChart -->
+
+                    <!-- @COMPONENT: VulnerabilitiesChart [vulnerability distribution] -->
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-medium">Vulnerability Distribution</h3>
+                            <button class="text-wazuh-primary text-sm hover:underline">View Details</button>
+                        </div>
+                        <canvas id="vulnerabilitiesChart" class="w-full h-64"></canvas>
+                    </div>
+                    <!-- @END_COMPONENT: VulnerabilitiesChart -->
+                </div>
+
+                <!-- Recent Alerts and Agent Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- @COMPONENT: RecentAlerts [latest security alerts table] -->
+                    <div class="lg:col-span-2 bg-wazuh-surface rounded-lg border border-gray-700">
+                        <div class="p-6 border-b border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-medium">Recent Security Alerts</h3>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" placeholder="Search alerts..." class="bg-wazuh-surface-variant border border-gray-600 rounded px-3 py-1 text-sm w-48">
+                                    <button class="bg-wazuh-primary px-3 py-1 rounded text-sm">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-wazuh-surface-variant">
+                                    <tr>
+                                        <th class="text-left p-4 font-medium text-sm">Severity</th>
+                                        <th class="text-left p-4 font-medium text-sm">Rule</th>
+                                        <th class="text-left p-4 font-medium text-sm">Agent</th>
+                                        <th class="text-left p-4 font-medium text-sm">Time</th>
+                                        <th class="text-left p-4 font-medium text-sm">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-mock="true">
+                                    <!-- @MAP: alerts.map(alert => ( -->
+                                    <tr class="border-b border-gray-700 hover:bg-wazuh-surface-variant">
+                                        <td class="p-4">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-wazuh-error bg-opacity-20 text-wazuh-error">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>Critical
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-sm">SSH brute force attack detected</td>
+                                        <td class="p-4 text-sm">web-server-01</td>
+                                        <td class="p-4 text-sm text-gray-400">2 min ago</td>
+                                        <td class="p-4">
+                                            <button class="text-wazuh-primary hover:underline text-sm">Investigate</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700 hover:bg-wazuh-surface-variant">
+                                        <td class="p-4">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-wazuh-warning bg-opacity-20 text-wazuh-warning">
+                                                <i class="fas fa-exclamation mr-1"></i>High
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-sm">Suspicious file modification</td>
+                                        <td class="p-4 text-sm">db-server-03</td>
+                                        <td class="p-4 text-sm text-gray-400">5 min ago</td>
+                                        <td class="p-4">
+                                            <button class="text-wazuh-primary hover:underline text-sm">Investigate</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700 hover:bg-wazuh-surface-variant">
+                                        <td class="p-4">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-500 bg-opacity-20 text-yellow-500">
+                                                <i class="fas fa-info-circle mr-1"></i>Medium
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-sm">Failed login attempts</td>
+                                        <td class="p-4 text-sm">app-server-02</td>
+                                        <td class="p-4 text-sm text-gray-400">8 min ago</td>
+                                        <td class="p-4">
+                                            <button class="text-wazuh-primary hover:underline text-sm">Investigate</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700 hover:bg-wazuh-surface-variant">
+                                        <td class="p-4">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-wazuh-error bg-opacity-20 text-wazuh-error">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>Critical
+                                            </span>
+                                        </td>
+                                        <td class="p-4 text-sm">Malware detected</td>
+                                        <td class="p-4 text-sm">endpoint-workstation-15</td>
+                                        <td class="p-4 text-sm text-gray-400">12 min ago</td>
+                                        <td class="p-4">
+                                            <button class="text-wazuh-primary hover:underline text-sm">Investigate</button>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-4 border-t border-gray-700 flex items-center justify-between">
+                            <span class="text-sm text-gray-400">Showing 4 of 24 alerts</span>
+                            <div class="flex items-center space-x-2">
+                                <button class="px-3 py-1 bg-wazuh-surface-variant rounded text-sm hover:bg-gray-600">Previous</button>
+                                <button class="px-3 py-1 bg-wazuh-primary rounded text-sm hover:bg-blue-600">Next</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: RecentAlerts -->
+
+                    <!-- @COMPONENT: AgentStatus [agent monitoring panel] -->
+                    <div class="bg-wazuh-surface rounded-lg border border-gray-700">
+                        <div class="p-6 border-b border-gray-700">
+                            <h3 class="text-lg font-medium">Agent Status</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4" data-mock="true">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-wazuh-success rounded-full"></div>
+                                        <span class="text-sm">Active</span>
+                                    </div>
+                                    <span class="text-sm font-medium" data-bind="agentStatus.active">823</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                                        <span class="text-sm">Disconnected</span>
+                                    </div>
+                                    <span class="text-sm font-medium" data-bind="agentStatus.disconnected">18</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-wazuh-warning rounded-full"></div>
+                                        <span class="text-sm">Pending</span>
+                                    </div>
+                                    <span class="text-sm font-medium" data-bind="agentStatus.pending">6</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h4 class="text-sm font-medium mb-4">Recent Agent Activity</h4>
+                                <div class="space-y-3" data-mock="true">
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-400">web-server-01</span>
+                                        <span class="text-wazuh-success">Connected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-400">app-server-02</span>
+                                        <span class="text-wazuh-warning">Reconnected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-400">db-server-03</span>
+                                        <span class="text-wazuh-success">Connected</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full mt-6 bg-wazuh-primary py-2 rounded text-sm hover:bg-blue-600">
+                                Manage Agents
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: AgentStatus -->
+                </div>
+
+                <!-- MITRE ATT&CK and Compliance Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- @COMPONENT: MitreAttackMatrix [MITRE framework visualization] -->
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-medium">MITRE ATT&CK Framework</h3>
+                            <button class="text-wazuh-primary text-sm hover:underline">View Full Matrix</button>
+                        </div>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="bg-wazuh-surface-variant rounded p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium">Initial Access</span>
+                                    <span class="text-xs bg-wazuh-error bg-opacity-20 text-wazuh-error px-2 py-1 rounded">3 alerts</span>
+                                </div>
+                                <div class="text-xs text-gray-400">T1078 - Valid Accounts</div>
+                            </div>
+                            <div class="bg-wazuh-surface-variant rounded p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium">Persistence</span>
+                                    <span class="text-xs bg-wazuh-warning bg-opacity-20 text-wazuh-warning px-2 py-1 rounded">2 alerts</span>
+                                </div>
+                                <div class="text-xs text-gray-400">T1053 - Scheduled Task/Job</div>
+                            </div>
+                            <div class="bg-wazuh-surface-variant rounded p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium">Defense Evasion</span>
+                                    <span class="text-xs bg-wazuh-warning bg-opacity-20 text-wazuh-warning px-2 py-1 rounded">1 alert</span>
+                                </div>
+                                <div class="text-xs text-gray-400">T1070 - Indicator Removal</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: MitreAttackMatrix -->
+
+                    <!-- @COMPONENT: ComplianceOverview [compliance status dashboard] -->
+                    <div class="bg-wazuh-surface rounded-lg p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-medium">Compliance Overview</h3>
+                            <button class="text-wazuh-primary text-sm hover:underline">View Reports</button>
+                        </div>
+                        <div class="space-y-4" data-mock="true">
+                            <div class="flex items-center justify-between p-4 bg-wazuh-surface-variant rounded">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-credit-card text-wazuh-primary"></i>
+                                    <span class="text-sm font-medium">PCI DSS</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-wazuh-success">96%</span>
+                                    <div class="w-16 bg-gray-700 rounded-full h-2">
+                                        <div class="bg-wazuh-success h-2 rounded-full" style="width: 96%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-wazuh-surface-variant rounded">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-user-shield text-wazuh-primary"></i>
+                                    <span class="text-sm font-medium">GDPR</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-wazuh-success">94%</span>
+                                    <div class="w-16 bg-gray-700 rounded-full h-2">
+                                        <div class="bg-wazuh-success h-2 rounded-full" style="width: 94%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-wazuh-surface-variant rounded">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-hospital text-wazuh-primary"></i>
+                                    <span class="text-sm font-medium">HIPAA</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-wazuh-warning">88%</span>
+                                    <div class="w-16 bg-gray-700 rounded-full h-2">
+                                        <div class="bg-wazuh-warning h-2 rounded-full" style="width: 88%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-wazuh-surface-variant rounded">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-bookmark text-wazuh-primary"></i>
+                                    <span class="text-sm font-medium">NIST 800-53</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-wazuh-success">92%</span>
+                                    <div class="w-16 bg-gray-700 rounded-full h-2">
+                                        <div class="bg-wazuh-success h-2 rounded-full" style="width: 92%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ComplianceOverview -->
+                </div>
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+
+    <script>
+        // Chart.js configurations
+        (function() {
+            // Alerts Timeline Chart
+            const alertsCtx = document.getElementById('alertsChart').getContext('2d');
+            new Chart(alertsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    datasets: [{
+                        label: 'Critical',
+                        data: [12, 8, 15, 22, 18, 25, 24],
+                        borderColor: '#F44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'High',
+                        data: [25, 20, 35, 45, 32, 48, 42],
+                        borderColor: '#FF9800',
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#E0E0E0'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#E0E0E0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#E0E0E0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Vulnerabilities Doughnut Chart
+            const vulnCtx = document.getElementById('vulnerabilitiesChart').getContext('2d');
+            new Chart(vulnCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low'],
+                    datasets: [{
+                        data: [24, 48, 56, 28],
+                        backgroundColor: ['#F44336', '#FF9800', '#FFC107', '#4CAF50'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#E0E0E0',
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Real-time data polling simulation
+            // TODO: Implement real-time WebSocket connection for live updates
+            function simulateRealTimeUpdates() {
+                // This would be replaced with actual WebSocket or SSE implementation
+                console.log('Polling for real-time security data updates...');
+            }
+
+            // Simulate polling every 30 seconds
+            setInterval(simulateRealTimeUpdates, 30000);
+
+            // Mock API endpoints for dashboard features
+            // TODO: Implement actual RESTful API endpoints
+            const mockApiEndpoints = {
+                alerts: '/api/v1/alerts',
+                agents: '/api/v1/agents',
+                vulnerabilities: '/api/v1/vulnerabilities',
+                compliance: '/api/v1/compliance',
+                mitre: '/api/v1/mitre-attack',
+                dashboards: '/api/v1/dashboards'
+            };
+
+        })();
+    </script>
+</body>
+</html>
